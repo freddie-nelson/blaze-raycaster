@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-const mapSchema = z.object({
-  width: z.number().min(1),
-  height: z.number().min(1),
-  map: z.array(z.array(z.number()).min(1)).min(1),
+export const mapSchema = z.object({
+  size: z.number().min(1).int(),
+  origin: z.array(z.number().int().nonnegative()).length(2),
+  map: z.array(z.array(z.number().int().nonnegative()).min(1)).min(1),
 });
 
 export type GameMap = z.infer<typeof mapSchema>;
