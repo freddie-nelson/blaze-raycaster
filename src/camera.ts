@@ -1,9 +1,19 @@
 import { vec2 } from "gl-matrix";
+import Entity from "./entity";
 import { ORIGIN_2D } from "./globals";
 import Viewport from "./viewport";
 
-export default class Camera {
-  constructor(private fov: number, public viewport = new Viewport(640, 480), readonly direction = vec2.create()) {}
+export default class Camera extends Entity {
+  /**
+   * Creates a new camera.
+   *
+   * @param fov The field of view in radians
+   * @param viewport The camera's viewport
+   * @param direction The direction the camera is facing
+   */
+  constructor(private fov: number, public viewport = new Viewport(640, 480), readonly direction = vec2.create()) {
+    super(vec2.create(), vec2.create());
+  }
 
   setFov(fov: number) {
     this.fov = fov;
