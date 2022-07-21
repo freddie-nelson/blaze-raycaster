@@ -1,4 +1,4 @@
-import { vec2 } from "gl-matrix";
+import { glMatrix, vec2 } from "gl-matrix";
 import Camera from "./camera";
 import { resizeCanvas } from "./canvas";
 import { clear, line } from "./drawing";
@@ -23,7 +23,7 @@ export default class Blaze {
     canvas: HTMLCanvasElement,
     public map: GameMap,
     public player = new Player(),
-    public camera = new Camera(60, new Viewport(640, 480)),
+    public camera = new Camera(Math.PI / 3, new Viewport(640, 480)),
   ) {
     this.canvas = new BlazeElement(canvas);
     this.ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -34,8 +34,9 @@ export default class Blaze {
     this.timeStep = new TimeStep(performance.now(), 0, 0);
 
     // temp camera controls
-    this.canvas.keys.addListener("ArrowLeft", () => this.camera.rotate(-0.1));
-    this.canvas.keys.addListener("ArrowRight", () => this.camera.rotate(0.1));
+    this.canvas.keys.addListener("ArrowLeft", () => this.camera.rotate(glMatrix.toRadian(-2)));
+    this.canvas.keys.addListener("ArrowRight", () => this.camera.rotate(glMatrix.toRadian(2)));
+    this.canvas.keys.addListener("KeyW", () => this.camera.translate(0, -0.1));
 
     this.update();
   }
@@ -68,7 +69,7 @@ export default class Blaze {
 
     for (let x = 0; x < viewport.width; x++) {
       const angle = incAngle * x - incAngle * viewport.getHalfWidth();
-      vec2.rotate(dir, this.camera.direction, ORIGIN_2D, angle);
+      vec2.rotate(dir, this.camera.dir, ORIGIN_2D, angle);
 
       const ray = new Ray(this.camera.pos, dir, this.map.size);
       const result = ray.cast(this.map);
