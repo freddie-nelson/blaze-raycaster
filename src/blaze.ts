@@ -36,7 +36,7 @@ export default class Blaze {
     // temp camera controls
     this.canvas.keys.addListener("ArrowLeft", () => this.camera.rotate(glMatrix.toRadian(-2)));
     this.canvas.keys.addListener("ArrowRight", () => this.camera.rotate(glMatrix.toRadian(2)));
-    this.canvas.keys.addListener("KeyW", () => this.camera.translate(0, -0.1));
+    this.canvas.keys.addListener("KeyW", () => this.camera.translate(0, 0.1));
 
     this.update();
   }

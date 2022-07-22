@@ -31,71 +31,66 @@ export default class Ray {
   private castMap(map: GameMap) {
     const grid = map.map;
 
-    // step direction
-    const stepDirX = this.direction[0] < 0 ? -1 : 1;
-    const stepDirY = this.direction[1] < 0 ? -1 : 1;
-
     // distance to step along the ray for 1 unit along corresponding axis
-    let stepX = Math.sqrt(1 + (this.direction[1] / this.direction[0]) ** 2) * stepDirX;
-    if (stepX === Infinity) stepX = 0;
+    const rayUnitStepSize = vec2.fromValues(
+      Math.sqrt(1 + (this.direction[1] / this.direction[0]) ** 2),
+      Math.sqrt(1 + (this.direction[0] / this.direction[1]) ** 2),
+    );
 
-    let stepY = Math.sqrt(1 + (this.direction[0] / this.direction[1]) ** 2) * stepDirY;
-    if (stepY === Infinity) stepY = 0;
+    const rayLength1D = vec2.create();
 
-    // coordinates of cell containing ray origin
-    const originCellWorld = this.getCellPos(this.origin);
+    // coordinates of cell containing the hit point
+    const mapCheck = this.getCellPos(this.origin);
 
-    // x and y step to use on first dda iteration
-    const startStepX = Math.abs(originCellWorld[0]) * stepX;
-    const startStepY = Math.abs(originCellWorld[1]) * stepY;
+    // step direction
+    const stepDir = vec2.create();
 
-    // track distance travelled using each axis step
-    let travelledX = 0;
-    let travelledY = 0;
+    if (this.direction[0] < 0) {
+      stepDir[0] = -1;
+      rayLength1D[0] = (this.origin[0] - mapCheck[0]) * rayUnitStepSize[0];
+    } else {
+      stepDir[0] = 1;
+      rayLength1D[0] = (mapCheck[0] + 1 - this.origin[0]) * rayUnitStepSize[0];
+    }
+
+    if (this.direction[1] < 0) {
+      stepDir[1] = -1;
+      rayLength1D[1] = (this.origin[1] - mapCheck[1]) * rayUnitStepSize[1];
+    } else {
+      stepDir[1] = 1;
+      rayLength1D[1] = (mapCheck[1] + 1 - this.origin[1]) * rayUnitStepSize[1];
+    }
+
     let dist = 0;
-    let step = startStepX < startStepY ? startStepX : startStepY;
-    let axis: 0 | 1 = startStepX < startStepY ? 0 : 1;
-    const point = vec2.clone(this.origin);
-
-    // console.log("stepDirX:", stepDirX, "stepDirY:", stepDirY, "stepX:", stepX, "stepY:", stepY);
-
-    while (dist <= this.distance) {
-      const cellIndex = this.getCellIndex(point, map);
-      // console.log("cellX:", cellX, "cellY:", cellY);
+    while (dist < this.distance) {
+      // walk
+      if (rayLength1D[0] < rayLength1D[1]) {
+        mapCheck[0] += stepDir[0];
+        dist = rayLength1D[0];
+        rayLength1D[0] += rayUnitStepSize[0];
+      } else {
+        mapCheck[1] += stepDir[1];
+        dist = rayLength1D[1];
+        rayLength1D[1] += rayUnitStepSize[1];
+      }
 
       // check to see if ray is outside map
-      if (cellIndex[0] < 0 || cellIndex[0] >= map.size || cellIndex[1] < 0 || cellIndex[1] >= map.size)
-        return undefined;
+      const cellIndex = this.getCellIndex(mapCheck, map);
+      if (cellIndex[0] < 0 || cellIndex[0] >= map.size || cellIndex[1] < 0 || cellIndex[1] >= map.size) return;
 
-      // check for cell collision
+      // check for wall collision
       const cell = grid[cellIndex[1]][cellIndex[0]];
-      // console.log("cell:", cell);
       if (cell !== 0) {
         return {
           cell,
           cellIndex,
-          hit: point,
+          hit: vec2.scaleAndAdd(vec2.create(), this.origin, this.direction, dist),
           dist,
         };
       }
-
-      // increment distances
-      if (axis === 0) travelledX += step;
-      else travelledY += step;
-      dist += step;
-
-      // console.log("axis:", axis, "step:", step, "dist:", dist, "travelledX:", travelledX, "travelledY:", travelledY);
-
-      // move collision point along
-      vec2.scaleAndAdd(point, point, this.direction, step);
-
-      // choose new axis and step
-      axis = travelledX < travelledY ? 0 : 1;
-      if (axis === 0) step = stepX;
-      else step = stepY;
     }
 
-    return undefined;
+    return;
   }
 
   /**

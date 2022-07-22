@@ -23,7 +23,7 @@ export default class Entity {
     }
 
     const angle = Math.atan2(this.dir[1], this.dir[0]);
-    vec2.rotate(v, v, ORIGIN_2D, angle);
+    vec2.rotate(v, v, ORIGIN_2D, angle - Math.PI / 2);
     vec2.add(this.pos, this.pos, v);
   }
 
