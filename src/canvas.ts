@@ -1,6 +1,9 @@
-export function resizeCanvas(canvas: HTMLCanvasElement) {
-  if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+export function resizeCanvas(canvas: HTMLCanvasElement, renderScale: number) {
+  const width = Math.floor(canvas.clientWidth * renderScale);
+  const height = Math.floor(canvas.clientHeight * renderScale);
+
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
   }
 }

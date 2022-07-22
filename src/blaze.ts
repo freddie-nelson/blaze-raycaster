@@ -12,10 +12,10 @@ import TimeStep from "./timestep";
 import Viewport from "./viewport";
 
 export default class Blaze {
-  precision = 64;
   readonly entities: Entity[] = [];
   private timeStep = new TimeStep(0, 0, 0);
 
+  private renderScale = 0.5;
   private canvas: BlazeElement<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D;
 
@@ -23,7 +23,7 @@ export default class Blaze {
     canvas: HTMLCanvasElement,
     public map: GameMap,
     public player = new Player(),
-    public camera = new Camera(Math.PI / 3, new Viewport(640, 480)),
+    public camera = new Camera(glMatrix.toRadian(70), new Viewport(640, 480)),
   ) {
     this.canvas = new BlazeElement(canvas);
     this.ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -57,7 +57,7 @@ export default class Blaze {
 
   private render() {
     // pre-draw steps
-    resizeCanvas(this.canvas.element);
+    resizeCanvas(this.canvas.element, this.renderScale);
     this.camera.viewport.resize(this.canvas.element.width, this.canvas.element.height);
 
     clear(this.ctx);
