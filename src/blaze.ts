@@ -1,6 +1,8 @@
 import { glMatrix, vec2 } from "gl-matrix";
 import Camera from "./camera";
 import { resizeCanvas } from "./canvas";
+import Controls from "./controls/controls";
+import PointerLockControls from "./controls/pointerLock";
 import { clear, line } from "./drawing";
 import BlazeElement from "./element";
 import Entity from "./entity";
@@ -19,6 +21,8 @@ export default class Blaze {
   private canvas: BlazeElement<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D;
 
+  private controls: Controls;
+
   constructor(
     canvas: HTMLCanvasElement,
     public map: GameMap,
@@ -28,15 +32,12 @@ export default class Blaze {
     this.canvas = new BlazeElement(canvas);
     this.ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
     if (!this.ctx) throw new Error("Could not get canvas context");
+
+    this.controls = new PointerLockControls(this.canvas.element, this.camera);
   }
 
   start() {
     this.timeStep = new TimeStep(performance.now(), 0, 0);
-
-    // temp camera controls
-    this.canvas.keys.addListener("ArrowLeft", () => this.camera.rotate(glMatrix.toRadian(-2)));
-    this.canvas.keys.addListener("ArrowRight", () => this.camera.rotate(glMatrix.toRadian(2)));
-    this.canvas.keys.addListener("KeyW", () => this.camera.translate(0, 0.1));
 
     this.update();
   }
@@ -47,6 +48,21 @@ export default class Blaze {
 
     this.player.update(this.timeStep);
     this.camera.update(this.timeStep);
+
+    this.controls.update();
+
+    // temp camera controls
+    const move = vec2.create();
+    const moveSpeed = 1 * this.timeStep.dt;
+
+    if (this.canvas.keys.isPressed("KeyW")) move[1] += moveSpeed;
+    if (this.canvas.keys.isPressed("KeyS")) move[1] -= moveSpeed;
+    if (this.canvas.keys.isPressed("KeyA")) move[0] += moveSpeed;
+    if (this.canvas.keys.isPressed("KeyD")) move[0] -= moveSpeed;
+
+    vec2.normalize(move, move);
+    vec2.scale(move, move, moveSpeed);
+    this.camera.translate(move);
 
     for (const e of this.entities) {
       e.update(this.timeStep);
