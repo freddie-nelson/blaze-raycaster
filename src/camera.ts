@@ -35,4 +35,10 @@ export default class Camera extends Entity {
   rotate(angle: number) {
     vec2.rotate(this.dir, this.dir, ORIGIN_2D, angle);
   }
+
+  resize(width: number, height: number) {
+    if (this.viewport.width === width && this.viewport.height === height) return;
+
+    this.viewport.resize(width, height);
+  }
 }

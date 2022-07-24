@@ -74,7 +74,7 @@ export default class Blaze {
   private render() {
     // pre-draw steps
     resizeCanvas(this.canvas.element, this.renderScale);
-    this.camera.viewport.resize(this.canvas.element.width, this.canvas.element.height);
+    this.camera.resize(this.canvas.element.width, this.canvas.element.height);
 
     clear(this.ctx);
 
@@ -91,7 +91,8 @@ export default class Blaze {
       const result = ray.cast(this.map);
       if (!result) continue;
 
-      const height = Math.floor(viewport.getHalfHeight() / result.dist);
+      const fixedDist = result.dist * Math.cos(angle);
+      const height = Math.floor(viewport.getHalfHeight() / fixedDist);
       line(this.ctx, x, viewport.getHalfHeight() - height, x, viewport.getHalfHeight() + height, "red");
     }
 

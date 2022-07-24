@@ -5,6 +5,10 @@ import TimeStep from "./timestep";
 export default class Entity {
   constructor(public pos = vec2.create(), public dir = vec2.create(), public vel = vec2.create()) {}
 
+  get angle() {
+    return Math.atan2(this.dir[1], this.dir[0]);
+  }
+
   update(timeStep: TimeStep) {
     vec2.scaleAndAdd(this.pos, this.pos, this.vel, timeStep.dt);
   }
@@ -22,8 +26,7 @@ export default class Entity {
       throw new Error("Invalid arguments");
     }
 
-    const angle = Math.atan2(this.dir[1], this.dir[0]);
-    vec2.rotate(v, v, ORIGIN_2D, angle - Math.PI / 2);
+    vec2.rotate(v, v, ORIGIN_2D, this.angle - Math.PI / 2);
     vec2.add(this.pos, this.pos, v);
   }
 
