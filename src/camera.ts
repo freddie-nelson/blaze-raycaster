@@ -11,7 +11,7 @@ export default class Camera extends Entity {
    * @param viewport The camera's viewport
    * @param dir The direction the camera is facing (must be normalized unit vector)
    */
-  constructor(private fov: number, public viewport = new Viewport(640, 480), dir = vec2.fromValues(0, 1)) {
+  constructor(private fov: number, public viewport = new Viewport(640, 480), dir?: vec2) {
     super(vec2.create(), dir, vec2.create());
   }
 
@@ -25,15 +25,6 @@ export default class Camera extends Entity {
 
   getHalfFov() {
     return this.fov / 2;
-  }
-
-  /**
-   * Rotates the camera.
-   *
-   * @param angle The angle to rotate by in radians
-   */
-  rotate(angle: number) {
-    vec2.rotate(this.dir, this.dir, ORIGIN_2D, angle);
   }
 
   resize(width: number, height: number) {

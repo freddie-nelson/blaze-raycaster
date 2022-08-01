@@ -1,7 +1,7 @@
-import { glMatrix, vec3 } from "gl-matrix";
 import Camera from "@/camera";
 import Controls from "./controls";
 import Entity from "@/entity";
+import { vec2 } from "gl-matrix";
 
 export default class PointerLockControls extends Controls {
   isLocked = false;
@@ -11,7 +11,7 @@ export default class PointerLockControls extends Controls {
    *
    * @param element The element to use when handling control events
    * @param camera The camera to control
-   * @param entity An optional entity to follow the camera's yaw
+   * @param entity An optional entity to match the camera's direction
    * @param sensitivity Movement sensitivity
    */
   constructor(element: HTMLElement, camera: Camera, entity?: Entity, sensitivity = 0.2) {
@@ -63,6 +63,7 @@ export default class PointerLockControls extends Controls {
 
     const angle = (this.movementX / this.camera.viewport.width) * Math.PI * this.sensitivity;
     this.camera.rotate(angle);
+    if (this.entity) vec2.copy(this.entity.dir, this.camera.dir);
 
     this.movementX = 0;
     this.movementY = 0;
