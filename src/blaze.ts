@@ -17,7 +17,7 @@ export default class Blaze {
   readonly entities: Entity[] = [];
   private timeStep = new TimeStep(0, 0, 0);
 
-  private renderScale = 0.35;
+  private renderScale = 0.2;
   private canvas: BlazeElement<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D;
 
@@ -97,7 +97,7 @@ export default class Blaze {
 
     // post-draw steps
     this.drawFPSText();
-    this.drawDebugMap();
+    this.drawMiniMap();
   }
 
   private drawFPSText() {
@@ -107,24 +107,20 @@ export default class Blaze {
     ctx.font = `${fontSize}px Arial`;
     ctx.fillStyle = "black";
 
-    ctx.fillText(`${this.timeStep.getFPS()}`, 5, fontSize);
+    ctx.fillText(`${this.timeStep.getFPS()}`, fontSize * 0.15, fontSize * 0.9);
 
     ctx.font = "";
     ctx.fillStyle = "";
   }
 
   /**
-   * Draws the debug minimap.
+   * Draws the minimap.
    *
    * @param zoom The amount of cells visible in the minimap
    * @param radius The radius of the minimap in pixels
    * @param margin The distance to draw the map from the top and right side of the screen (in pixels)
    */
-  private drawDebugMap(
-    zoom = Math.floor(this.map.size * 0.6),
-    radius = this.camera.viewport.width * this.renderScale * 0.2,
-    margin = radius * 0.1,
-  ) {
+  private drawMiniMap(zoom = Math.floor(this.map.size * 0.6), radius = 130 * this.renderScale, margin = radius * 0.1) {
     const ctx = this.ctx;
     const cx = this.camera.viewport.width - radius - margin;
     const cy = radius + margin;
@@ -179,9 +175,7 @@ export default class Blaze {
       }
     }
 
-    const img = new Image();
-    img.src = this.mapCanvas.toDataURL();
-    return { img, px, py, angle: -this.player.angle + Math.PI };
+    return { img: this.mapCanvas, px, py, angle: -this.player.angle + Math.PI };
   }
 
   getIncrementAngle() {
