@@ -1,5 +1,5 @@
 import { vec2 } from "gl-matrix";
-import { GameMap, mapSchema } from "./maps";
+import { GameMap } from "./maps";
 
 export interface MapCastResult {
   cell: number;
@@ -21,11 +21,7 @@ export default class Ray {
   cast(map: GameMap): MapCastResult | undefined;
 
   cast(obj: GameMap) {
-    if (mapSchema.strict().safeParse(obj).success) {
-      return this.castMap(obj);
-    }
-
-    return undefined;
+    return this.castMap(obj);
   }
 
   private castMap(map: GameMap) {

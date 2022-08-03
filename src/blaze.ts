@@ -86,7 +86,7 @@ export default class Blaze {
       const angle = incAngle * x - incAngle * viewport.getHalfWidth();
       vec2.rotate(dir, this.camera.dir, ORIGIN_2D, angle);
 
-      const ray = new Ray(this.camera.pos, dir, this.map.size);
+      const ray = new Ray(this.camera.pos, dir, this.map.size * 2);
       const result = ray.cast(this.map);
       if (!result) continue;
 
@@ -150,7 +150,7 @@ export default class Blaze {
     this.mapCanvas.width = size;
     this.mapCanvas.height = size;
 
-    this.mapCtx.clearRect(0, 0, size, size);
+    clear(this.mapCtx);
 
     const px = (this.player.pos[0] + this.map.origin[0]) * cellSize;
     const py = (this.player.pos[1] + this.map.origin[1]) * cellSize;

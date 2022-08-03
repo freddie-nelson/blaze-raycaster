@@ -1,14 +1,14 @@
 import { vec2 } from "gl-matrix";
 import { z } from "zod";
 
-export const mapSchema = z.object({
+export const jsonMapSchema = z.object({
   size: z.number().min(1).int(),
   origin: z.array(z.number().int().nonnegative()).length(2),
   map: z.array(z.array(z.number().int().nonnegative()).min(1)).min(1),
   textures: z.array(z.string()),
 });
 
-export type JSONMap = z.infer<typeof mapSchema>;
+export type JSONMap = z.infer<typeof jsonMapSchema>;
 
 export interface GameMap {
   size: number;
@@ -27,7 +27,7 @@ export interface GameMap {
  */
 export async function loadMap(name: string): Promise<GameMap> {
   const obj = await (await fetch(`/maps/${name}.json`)).json();
-  const map = mapSchema.parse(obj);
+  const map = jsonMapSchema.parse(obj);
 
   // check to see if textures array contains correct amount of textures for map data
   let maxCell = 0;
