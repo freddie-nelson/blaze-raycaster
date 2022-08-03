@@ -3,8 +3,8 @@ import Entity from "./entity";
 import TimeStep from "./timestep";
 
 export default class Player extends Entity {
-  constructor(pos = vec2.create(), vel = vec2.create()) {
-    super(pos, vel);
+  constructor(pos = vec2.create(), dir?: vec2, vel = vec2.create()) {
+    super(pos, dir, vel);
   }
 
   update(timeStep: TimeStep) {
