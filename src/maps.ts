@@ -1,5 +1,6 @@
 import { vec2 } from "gl-matrix";
 import { z } from "zod";
+import AABB from "./physics/aabb";
 
 export const jsonMapSchema = z.object({
   size: z.number().min(1).int(),
@@ -15,6 +16,7 @@ export interface GameMap {
   origin: vec2;
   map: number[][];
   textures: ImageData[];
+  wallAABBs: AABB[];
 }
 
 /**
@@ -47,11 +49,24 @@ export async function loadMap(name: string): Promise<GameMap> {
     }),
   );
 
+  // create aabbs
+  const wallAABBs: AABB[] = [];
+  for (let y = 0; y < map.size; y++) {
+    for (let x = 0; x < map.size; x++) {
+      if (map.map[y][x] !== 0) {
+        const wx = x - map.origin[0];
+        const wy = y - map.origin[1];
+        wallAABBs.push(new AABB(vec2.fromValues(wx, wy), vec2.fromValues(wx + 1, wy + 1)));
+      }
+    }
+  }
+
   return {
     size: map.size,
     origin: <vec2>map.origin,
     map: map.map,
     textures,
+    wallAABBs,
   };
 }
 

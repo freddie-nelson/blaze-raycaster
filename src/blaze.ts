@@ -3,7 +3,7 @@ import Camera from "./camera";
 import { resizeCanvas } from "./canvas";
 import Controls from "./controls/controls";
 import PointerLockControls from "./controls/pointerLock";
-import { circle, clear, fillCircle, fillTriangle, line, strokeCircle, texture } from "./drawing";
+import { circle, clear, fillCircle, fillTriangle, strokeCircle, texture } from "./drawing";
 import BlazeElement from "./element";
 import Entity from "./entity";
 import { ORIGIN_2D } from "./globals";
@@ -53,11 +53,7 @@ export default class Blaze {
     this.timeStep = this.timeStep.next();
     this.controls.update();
 
-    for (const e of this.entities) {
-      e.update(this.timeStep);
-    }
-
-    // temp camera controls
+    // temp player controls
     const move = vec2.create();
     const moveSpeed = 1 * this.timeStep.dt;
 
@@ -68,8 +64,25 @@ export default class Blaze {
 
     vec2.normalize(move, move);
     vec2.scale(move, move, moveSpeed);
-    this.camera.translate(move);
     this.player.translate(move);
+    this.camera.pos = this.player.pos;
+
+    for (const e of this.entities) {
+      e.update(this.timeStep);
+    }
+
+    for (const e of this.entities) {
+      if (e.noClip) continue;
+
+      for (const w of this.map.wallAABBs) {
+        const res = e.collider.testCollision(w);
+
+        if (res.hasCollision) {
+          const penetration = vec2.scale(vec2.create(), res.normal, res.depth);
+          e.translate(penetration);
+        }
+      }
+    }
 
     this.render();
   }
@@ -178,14 +191,10 @@ export default class Blaze {
     const py = (this.player.pos[1] + this.map.origin[1]) * cellSize;
 
     // draw player
-    const pSize = cellSize * 0.6;
     this.mapCtx.translate(px, py);
     this.mapCtx.rotate(this.player.angle + Math.PI);
-    fillTriangle(this.mapCtx, 0, 0, pSize, pSize, "blue");
+    fillCircle(this.mapCtx, 0, 0, this.player.collider.radius * cellSize, "white");
     this.mapCtx.resetTransform();
-
-    this.mapCtx.fillStyle = "white";
-    this.mapCtx.fill();
 
     // draw cells
     for (let y = 0; y < this.map.size; y++) {

@@ -12,7 +12,7 @@ export default class Camera extends Entity {
    * @param dir The direction the camera is facing (must be normalized unit vector)
    */
   constructor(private fov: number, public viewport = new Viewport(640, 480), dir?: vec2) {
-    super(vec2.create(), dir, vec2.create());
+    super(vec2.create(), dir, vec2.create(), 0, true);
   }
 
   setFov(fov: number) {

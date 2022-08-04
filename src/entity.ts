@@ -1,9 +1,20 @@
 import { vec2 } from "gl-matrix";
 import { ORIGIN_2D } from "./globals";
+import Circle from "./physics/circle";
 import TimeStep from "./timestep";
 
 export default class Entity {
-  constructor(public pos = vec2.create(), public dir = vec2.fromValues(0, -1), public vel = vec2.create()) {}
+  readonly collider: Circle;
+
+  constructor(
+    public pos = vec2.create(),
+    public dir = vec2.fromValues(0, -1),
+    public vel = vec2.create(),
+    radius = 0,
+    public noClip = false,
+  ) {
+    this.collider = new Circle(this.pos, radius);
+  }
 
   get angle() {
     return Math.atan2(this.dir[1], this.dir[0]) - Math.PI / 2;
@@ -11,6 +22,7 @@ export default class Entity {
 
   update(timeStep: TimeStep) {
     vec2.scaleAndAdd(this.pos, this.pos, this.vel, timeStep.dt);
+    this.collider.centre = this.pos;
   }
 
   private translateVec = vec2.create();
