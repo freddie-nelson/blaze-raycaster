@@ -3,7 +3,7 @@ import Camera from "./camera";
 import { resizeCanvas } from "./canvas";
 import Controls from "./controls/controls";
 import PointerLockControls from "./controls/pointerLock";
-import { circle, clear, fillCircle, fillTriangle, line, strokeCircle } from "./drawing";
+import { circle, clear, fillCircle, fillTriangle, line, strokeCircle, texture } from "./drawing";
 import BlazeElement from "./element";
 import Entity from "./entity";
 import { ORIGIN_2D } from "./globals";
@@ -17,9 +17,11 @@ export default class Blaze {
   readonly entities: Entity[] = [];
   private timeStep = new TimeStep(0, 0, 0);
 
-  private renderScale = 0.2;
+  private renderScale = 0.3;
   private canvas: BlazeElement<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D;
+  private buffer = document.createElement("canvas");
+  private bufferCtx = <CanvasRenderingContext2D>this.buffer.getContext("2d");
 
   private controls: Controls;
 
@@ -40,6 +42,8 @@ export default class Blaze {
 
   start() {
     this.timeStep = new TimeStep(performance.now(), 0, 0);
+    this.ctx.imageSmoothingEnabled = false;
+    this.bufferCtx.imageSmoothingEnabled = false;
 
     this.update();
   }
@@ -75,12 +79,16 @@ export default class Blaze {
     resizeCanvas(this.canvas.element, this.renderScale);
     this.camera.resize(this.canvas.element.width, this.canvas.element.height);
 
+    const viewport = this.camera.viewport;
+    this.buffer.width = viewport.width;
+    this.buffer.height = viewport.height;
+
     clear(this.ctx);
 
     // raycast map
-    const viewport = this.camera.viewport;
     const incAngle = this.getIncrementAngle();
     const dir = vec2.create();
+    const imageData = this.bufferCtx.createImageData(viewport.width, viewport.height);
 
     for (let x = 0; x < viewport.width; x++) {
       const angle = incAngle * x - incAngle * viewport.getHalfWidth();
@@ -92,8 +100,22 @@ export default class Blaze {
 
       const distToScreenPlane = result.dist * Math.cos(angle);
       const height = Math.floor(viewport.getHalfHeight() / distToScreenPlane);
-      line(this.ctx, x, viewport.getHalfHeight() - height, x, viewport.getHalfHeight() + height, "red");
+
+      const tex = this.map.textures[result.cell - 1];
+      texture(
+        imageData,
+        x,
+        viewport.getHalfHeight() - height,
+        viewport.getHalfHeight() + height,
+        tex,
+        result.wallX * tex.width,
+        result.wallAxis === 1 ? 0.9 : 1,
+      );
     }
+
+    // console.log(buffer.data);
+    this.bufferCtx.putImageData(imageData, 0, 0);
+    this.ctx.drawImage(this.buffer, 0, 0);
 
     // post-draw steps
     this.drawFPSText();
@@ -168,9 +190,10 @@ export default class Blaze {
     // draw cells
     for (let y = 0; y < this.map.size; y++) {
       for (let x = 0; x < this.map.size; x++) {
-        if (this.map.map[y][x] !== 0) {
-          this.mapCtx.fillStyle = "red";
-          this.mapCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        const cell = this.map.map[y][x];
+        if (cell !== 0) {
+          const tex = this.map.textures[cell - 1];
+          this.mapCtx.putImageData(tex, x * cellSize, y * cellSize, 0, 0, cellSize, cellSize);
         }
       }
     }

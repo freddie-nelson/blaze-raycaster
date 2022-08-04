@@ -5,6 +5,8 @@ export interface MapCastResult {
   cell: number;
   cellIndex: vec2;
   hit: vec2;
+  wallX: number;
+  wallAxis: number;
   dist: number;
 }
 
@@ -59,16 +61,15 @@ export default class Ray {
 
     let dist = 0;
     while (dist < this.distance) {
+      // select walk axis
+      let axis: 0 | 1;
+      if (rayLength1D[0] < rayLength1D[1]) axis = 0;
+      else axis = 1;
+
       // walk
-      if (rayLength1D[0] < rayLength1D[1]) {
-        mapCheck[0] += stepDir[0];
-        dist = rayLength1D[0];
-        rayLength1D[0] += rayUnitStepSize[0];
-      } else {
-        mapCheck[1] += stepDir[1];
-        dist = rayLength1D[1];
-        rayLength1D[1] += rayUnitStepSize[1];
-      }
+      mapCheck[axis] += stepDir[axis];
+      dist = rayLength1D[axis];
+      rayLength1D[axis] += rayUnitStepSize[axis];
 
       // check to see if ray is outside map
       const cellIndex = this.getCellIndex(mapCheck, map);
@@ -77,10 +78,15 @@ export default class Ray {
       // check for wall collision
       const cell = grid[cellIndex[1]][cellIndex[0]];
       if (cell !== 0) {
+        const hit = vec2.scaleAndAdd(vec2.create(), this.origin, this.direction, dist);
+        const wallX = vec2.sub(vec2.create(), hit, mapCheck)[1 - axis];
+
         return {
           cell,
           cellIndex,
-          hit: vec2.scaleAndAdd(vec2.create(), this.origin, this.direction, dist),
+          hit,
+          wallX,
+          wallAxis: axis,
           dist,
         };
       }

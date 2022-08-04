@@ -13,6 +13,47 @@ export function line(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: 
   ctx.stroke();
 }
 
+export function texture(
+  buffer: ImageData,
+  x: number,
+  y1: number,
+  y2: number,
+  texture: ImageData,
+  texX: number,
+  colorMultiplier = 1,
+) {
+  y1 = Math.floor(y1);
+  y2 = Math.floor(y2);
+  y1 = y1 < y2 ? y1 : y2;
+  y2 = y1 < y2 ? y2 : y1;
+  texX = Math.floor(texX);
+
+  const height = y2 - y1;
+  const channels = texture.data.length === texture.width * texture.height * 4 ? 4 : 3;
+
+  // calculate limits to avoid trying to draw outside buffer
+  // also calculating limits before hand like this is more performant compared to
+  // just using continue or break inside the loop
+  let startY = 0;
+  if (y1 < 0) startY = Math.abs(y1);
+
+  let endY = height;
+  if (y2 > buffer.height) endY = startY + buffer.height;
+
+  for (let y = startY; y < endY; y++) {
+    const pixel = ((y1 + y) * buffer.width + x) * 4;
+
+    const texY = Math.floor((y / height) * texture.height);
+    const i = (texY * texture.width + texX) * channels;
+
+    // don't try to make this fancy (this is good for performance)
+    buffer.data[pixel] = texture.data[i] * colorMultiplier;
+    buffer.data[pixel + 1] = texture.data[i + 1] * colorMultiplier;
+    buffer.data[pixel + 2] = texture.data[i + 2] * colorMultiplier;
+    buffer.data[pixel + 3] = texture.data[i + 3];
+  }
+}
+
 export function circle(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number) {
   ctx.beginPath();
   ctx.ellipse(cx, cy, radius, radius, Math.PI * 2, 0, Math.PI * 2);
